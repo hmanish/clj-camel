@@ -6,50 +6,7 @@ parameters to the dsl element. For paramterless dsl element, the keyword can be 
 with or without the vector.
 
 Expressing the routes as simple clojure vectors allows you to manipulate and compose routes with
-all the goodness of functional programming.
-
-(require '[clj-camel.core :as c])
-
-(defn test-bean [exchange body]
-  (even? body))
-
-(defn make-error-handler []
-  [[:error-handler (c/defaultErrorHandler)]
-   [:log-stack-trace true]
-   [:log-retry-stack-trace true]
-   [:log-handled true]
-   [:log-exhausted true]
-   [:retry-attempted-log-level LoggingLevel/WARN]
-   [:redelivery-delay 1000]
-   [:maximum-redeliveries 3]])
-
-(defn make-test-routes []
-  [
-   [[:from \"direct:test-route-error\"]
-    [:log \"error occurred: ${exception}\"]]
-   
-   [[:from \"direst:test-route-2\"]
-    [:to \"file://test\"]]
-
-   [[:from \"direct:test-route-1\"]
-    [:route-id \"test-route-1\"]
-    [:on-exception Exception]
-    [:redelivery-delay 30000]
-    [:handled true]
-    [:to \"direct:test-route-error\"]
-    [:end]
-    [:set-header :exchange][:exchange]
-    [:bean-ref \"test-bean\" \"invoke(${header.:exchange}, ${body})\"]
-    [:to \"direct:test-route-2\"]]
-   ])
-
-(defn start-camel-context []
-  (let [r (SimpleRegistry.)
-        ctx (doto (DefaultCamelContext. r))]
-    (.put r \"test-bean\" test-bean)
-    (c/add-routes ctx (cons (make-error-handler) (make-test-routes)))
-    (.start ctx)
-    ctx))"
+all the goodness of functional programming."
 
 (:import [org.apache.camel.model ProcessorDefinition MulticastDefinition ThreadsDefinition ChoiceDefinition
           TryDefinition RecipientListDefinition RoutingSlipDefinition DynamicRouterDefinition
