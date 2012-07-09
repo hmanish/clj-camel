@@ -63,4 +63,3 @@ all the goodness of functional programming.
 
 Copyright (c) 2012-2013 Manish Handa and released under an MIT license.
 
-Distributed under the Eclipse Public License, the same as Clojure.
