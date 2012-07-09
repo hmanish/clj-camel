@@ -13,11 +13,6 @@ all the goodness of functional programming.
 (defn test-bean [exchange body]
   (even? body))
 
-(defn get-simple-name [var]
-  (let [n (.getSimpleName (class var))
-        last-index (.lastIndexOf n \"$\")]
-    (.replace (.substring n (inc last-index)) \"_\" \"-\")))
-
 (defn make-error-handler []
   [[:error-handler (c/defaultErrorHandler)]
    [:log-stack-trace true]
@@ -51,7 +46,7 @@ all the goodness of functional programming.
 (defn start-camel-context []
   (let [r (SimpleRegistry.)
         ctx (doto (DefaultCamelContext. r))]
-    (.put r (get-simple-name test-bean) test-bean)
+    (.put r "test-bean" test-bean)
     (c/add-routes ctx (cons (make-error-handler) (make-test-routes)))
     (.start ctx)
     ctx))"
