@@ -11,53 +11,53 @@ all the goodness of functional programming.
 
 ## Usage
 
-(require '[clj-camel.core :as c])
+    (require '[clj-camel.core :as c])
 
-(defn test-bean [exchange body]
-  (even? body))
+    (defn test-bean [exchange body]
+      (even? body))
 
-(defn get-simple-name [var]
-  (let [n (.getSimpleName (class var))
-        last-index (.lastIndexOf n \"$\")]
-    (.replace (.substring n (inc last-index)) \"_\" \"-\")))
+    (defn get-simple-name [var]
+      (let [n (.getSimpleName (class var))
+            last-index (.lastIndexOf n \"$\")]
+        (.replace (.substring n (inc last-index)) \"_\" \"-\")))
 
-(defn make-error-handler []
-  [[:error-handler (c/defaultErrorHandler)]
-   [:log-stack-trace true]
-   [:log-retry-stack-trace true]
-   [:log-handled true]
-   [:log-exhausted true]
-   [:retry-attempted-log-level LoggingLevel/WARN]
-   [:redelivery-delay 1000]
-   [:maximum-redeliveries 3]])
+    (defn make-error-handler []
+      [[:error-handler (c/defaultErrorHandler)]
+       [:log-stack-trace true]
+       [:log-retry-stack-trace true]
+       [:log-handled true]
+       [:log-exhausted true]
+       [:retry-attempted-log-level LoggingLevel/WARN]
+       [:redelivery-delay 1000]
+       [:maximum-redeliveries 3]])
 
-(defn make-test-routes []
-  [
-   [[:from \"direct:test-route-error\"]
-    [:log \"error occurred: ${exception}\"]]
-   
-   [[:from \"direst:test-route-2\"]
-    [:to \"file://test\"]]
+    (defn make-test-routes []
+      [
+       [[:from \"direct:test-route-error\"]
+        [:log \"error occurred: ${exception}\"]]
+       
+       [[:from \"direst:test-route-2\"]
+        [:to \"file://test\"]]
+    
+       [[:from \"direct:test-route-1\"]
+        [:route-id \"test-route-1\"]
+        [:on-exception Exception]
+        [:redelivery-delay 30000]
+        [:handled true]
+        [:to \"direct:test-route-error\"]
+        [:end]
+        [:set-header :exchange][:exchange]
+        [:bean-ref \"test-bean\" \"invoke(${header.:exchange}, ${body})\"]
+        [:to \"direct:test-route-2\"]]
+       ])
 
-   [[:from \"direct:test-route-1\"]
-    [:route-id \"test-route-1\"]
-    [:on-exception Exception]
-    [:redelivery-delay 30000]
-    [:handled true]
-    [:to \"direct:test-route-error\"]
-    [:end]
-    [:set-header :exchange][:exchange]
-    [:bean-ref \"test-bean\" \"invoke(${header.:exchange}, ${body})\"]
-    [:to \"direct:test-route-2\"]]
-   ])
-
-(defn start-camel-context []
-  (let [r (SimpleRegistry.)
-        ctx (doto (DefaultCamelContext. r))]
-    (.put r (get-simple-name test-bean) test-bean)
-    (add-routes ctx (cons (make-error-handler) (make-test-routes)))
-    (.start ctx)
-    ctx))
+    (defn start-camel-context []
+      (let [r (SimpleRegistry.)
+            ctx (doto (DefaultCamelContext. r))]
+        (.put r (get-simple-name test-bean) test-bean)
+        (add-routes ctx (cons (make-error-handler) (make-test-routes)))
+        (.start ctx)
+        ctx))
 
 ## License
 
