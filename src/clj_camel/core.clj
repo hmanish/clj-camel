@@ -46,7 +46,7 @@ all the goodness of functional programming.
 (defn start-camel-context []
   (let [r (SimpleRegistry.)
         ctx (doto (DefaultCamelContext. r))]
-    (.put r "test-bean" test-bean)
+    (.put r \"test-bean\" test-bean)
     (c/add-routes ctx (cons (make-error-handler) (make-test-routes)))
     (.start ctx)
     ctx))"
