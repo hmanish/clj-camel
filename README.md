@@ -18,8 +18,8 @@ all the goodness of functional programming.
 
     (defn get-simple-name [var]
       (let [n (.getSimpleName (class var))
-            last-index (.lastIndexOf n \"$\")]
-        (.replace (.substring n (inc last-index)) \"_\" \"-\")))
+            last-index (.lastIndexOf n "$")]
+        (.replace (.substring n (inc last-index)) "_" "-")))
 
     (defn make-error-handler []
       [[:error-handler (c/defaultErrorHandler)]
@@ -33,22 +33,22 @@ all the goodness of functional programming.
 
     (defn make-test-routes []
       [
-       [[:from \"direct:test-route-error\"]
-        [:log \"error occurred: ${exception}\"]]
+       [[:from "direct:test-route-error"]
+        [:log "error occurred: ${exception}"]]
        
-       [[:from \"direst:test-route-2\"]
-        [:to \"file://test\"]]
+       [[:from "direst:test-route-2"]
+        [:to "file://test"]]
     
-       [[:from \"direct:test-route-1\"]
-        [:route-id \"test-route-1\"]
+       [[:from "direct:test-route-1"]
+        [:route-id "test-route-1"]
         [:on-exception Exception]
         [:redelivery-delay 30000]
         [:handled true]
-        [:to \"direct:test-route-error\"]
+        [:to "direct:test-route-error"]
         [:end]
         [:set-header :exchange][:exchange]
-        [:bean-ref \"test-bean\" \"invoke(${header.:exchange}, ${body})\"]
-        [:to \"direct:test-route-2\"]]
+        [:bean-ref "test-bean" "invoke(${header.:exchange}, ${body})"]
+        [:to "direct:test-route-2"]]
        ])
 
     (defn start-camel-context []
