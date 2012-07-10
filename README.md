@@ -16,7 +16,7 @@ all the goodness of functional programming.
     (defn test-bean [exchange body]
       (even? body))
 
-    (defn error-handler 
+    (def error-handler 
       [[:error-handler (c/defaultErrorHandler)]
        [:log-stack-trace true]
        [:log-retry-stack-trace true]
@@ -26,7 +26,7 @@ all the goodness of functional programming.
        [:redelivery-delay 1000]
        [:maximum-redeliveries 3]])
 
-    (defn test-routes
+    (def test-routes
       [
        [[:from "direct:test-route-error"]
         [:log "error occurred: ${exception}"]]
