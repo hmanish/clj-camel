@@ -16,7 +16,7 @@ all the goodness of functional programming.
     (defn test-bean [exchange body]
       (even? body))
 
-    (defn make-error-handler []
+    (defn error-handler 
       [[:error-handler (c/defaultErrorHandler)]
        [:log-stack-trace true]
        [:log-retry-stack-trace true]
@@ -26,7 +26,7 @@ all the goodness of functional programming.
        [:redelivery-delay 1000]
        [:maximum-redeliveries 3]])
 
-    (defn make-test-routes []
+    (defn test-routes
       [
        [[:from "direct:test-route-error"]
         [:log "error occurred: ${exception}"]]
@@ -50,7 +50,7 @@ all the goodness of functional programming.
       (let [r (SimpleRegistry.)
             ctx (doto (DefaultCamelContext. r))]
         (.put r "test-bean" test-bean)
-        (c/add-routes ctx (cons (make-error-handler) (make-test-routes)))
+        (c/add-routes ctx (cons make-error-handler make-test-routes))
         (.start ctx)
         ctx))
 
