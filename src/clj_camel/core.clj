@@ -1402,9 +1402,9 @@ programming."
         (throw e)))))
   
 (defn apply-route-dsl [root-obj dsl-list]
-  (l/info (str "Creating the route: DSL for route --> "
+  (l/info "Creating the route: DSL for route --> "
                (first dsl-list)
-               " ... "))
+               " ... ")
   (let [ret (loop [[first & rest] dsl-list
                   res root-obj]
              (if first
