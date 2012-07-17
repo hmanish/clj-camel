@@ -50,7 +50,7 @@ all the goodness of functional programming.
       (let [r (SimpleRegistry.)
             ctx (doto (DefaultCamelContext. r))]
         (.put r "test-bean" test-bean)
-        (c/add-routes ctx (cons make-error-handler make-test-routes))
+        (c/add-routes ctx (cons error-handler test-routes))
         (.start ctx)
         ctx))
 
