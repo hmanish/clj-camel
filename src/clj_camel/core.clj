@@ -15,14 +15,16 @@ programming."
             TryDefinition RecipientListDefinition RoutingSlipDefinition DynamicRouterDefinition
             SamplingDefinition SplitDefinition ResequenceDefinition AggregateDefinition
             DelayDefinition ThrottleDefinition LoopDefinition OnExceptionDefinition RouteDefinition
-            SortDefinition OnCompletionDefinition InterceptSendToEndpointDefinition InterceptDefinition]
+            SortDefinition OnCompletionDefinition InterceptSendToEndpointDefinition InterceptDefinition
+            IdempotentConsumerDefinition]
            [org.apache.camel.model.language HeaderExpression MethodCallExpression PropertyExpression]
            [org.apache.camel.builder Builder RouteBuilder ValueBuilder SimpleBuilder
             DefaultErrorHandlerBuilder NoErrorHandlerBuilder LoggingErrorHandlerBuilder
             DeadLetterChannelBuilder ExpressionClause DataFormatClause]
            [org.apache.camel.builder.xml XPathBuilder]
            [org.apache.camel Endpoint NoSuchEndpointException  LoggingLevel util.ObjectHelper]
-           [org.slf4j Logger])
+           [org.slf4j Logger]
+           [com.bpk.cljcamel RouteBuilderImpl])
   (:require [clojure.tools.logging :as l])
   (:refer-clojure :exclude [bean error-handler]))
 
@@ -379,17 +381,35 @@ programming."
 (defmethod handle-spec [ProcessorDefinition :end-do-try] [rd _]
   (. rd endDoTry))
 
-(defmethod handle-spec [ProcessorDefinition :idempotent-consumer] [rd _ message-id-expression idempotent-repository]
-  (if idempotent-repository
-    (. rd idempotentConsumer message-id-expression idempotent-repository)
-    (. rd idempotentConsumer message-id-expression)))
-
+(defmethod handle-spec [ProcessorDefinition :idempotent-consumer]
+  ([rd _ message-id-expression] (. rd idempotentConsumer message-id-expression))
+  ([rd _ message-id-expression idempotent-repository] (. rd idempotentConsumer message-id-expression idempotent-repository)))
+  
 (defmethod handle-spec [ProcessorDefinition :filter]
   ([rd _ pred] (. rd filter pred))
   ([rd _] (. rd filter)))
 
 (defmethod handle-spec [ProcessorDefinition :validate] [rd _ expression]
   (. rd validate expression))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                         IDEMPOTENT CONSUMER DSL
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmethod handle-spec [IdempotentConsumerDefinition :message-id-repository-ref]
+  [cd _ ref] (.messageIdRepositoryRef cd ref))
+
+(defmethod handle-spec [IdempotentConsumerDefinition :message-id-repository]
+  [cd _ repo] (.messageIdRepository cd repo))
+
+(defmethod handle-spec [IdempotentConsumerDefinition :eager]
+  [cd _ is-eager] (.eager cd is-eager))
+
+(defmethod handle-spec [IdempotentConsumerDefinition :remove-on-failure]
+  [cd _ is-remove] (.removeOnFailure cd is-remove))
+
+(defmethod handle-spec [IdempotentConsumerDefinition :skip-duplicate]
+  [cd _ is-skip-duplicate] (.skipDuplicate cd is-skip-duplicate))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                LOADBALANCE DEF
@@ -1133,7 +1153,7 @@ programming."
   
 (defn apply-route-dsl [root-obj dsl-list]
   (l/info "Parsing route: DSL for route --> " (first dsl-list) " ... ")
-  (let [ret (loop [[first & rest] dsl-list
+  (let [ret (loop [[first & rest] (remove nil? dsl-list)
                   res root-obj]
              (if first
                (recur rest (apply-dsl-part res first))
@@ -1144,13 +1164,15 @@ programming."
   (let [ctx (.getContext rb)]
     (condp get  key
       #{:error-handler} (apply handle-spec rb [:error-handler (apply-route-dsl (first rest-spec) rest)])
-      #{:on-exception :from :intercept :intercept-from :intercept-send-to-endpoint} (apply-route-dsl rb route))))
+      #{:on-exception :from :intercept :intercept-from :intercept-send-to-endpoint} (apply-route-dsl rb route)
+      nil)))
 
 (defn add-routes [ctx route-specs]
-  (let [rb (proxy [RouteBuilder] []
-             (configure []
+  (let [rb (RouteBuilderImpl. 
+             (fn [this]
                (doseq [spec route-specs]
-                 (add-route this spec))
+                 (when (seq spec)
+                   (add-route this spec)))
                (l/info "Route configure done")))]
     (.addRoutes ctx rb)))
   
