@@ -1,4 +1,4 @@
-# clj-camel
+# clj-camel [![Build Status](https://travis-ci.org/hmanish/clj-camel.svg?branch=master)](https://travis-ci.org/hmanish/clj-camel)
 
 clj-camel provides a thin wrapper over the Apache Camel Java DSL. The routes are wrtten as clojure vectors
 where the first element is the keyword corresponding to the camel dsl (converted to clojure convention,
@@ -16,7 +16,7 @@ all the goodness of functional programming.
     (defn test-bean [exchange body]
       (even? body))
 
-    (def error-handler 
+    (def error-handler
       [[:error-handler (c/defaultErrorHandler)]
        [:log-stack-trace true]
        [:log-retry-stack-trace true]
@@ -30,10 +30,10 @@ all the goodness of functional programming.
       [
        [[:from "direct:test-route-error"]
         [:log "error occurred: ${exception}"]]
-       
+
        [[:from "direst:test-route-2"]
         [:to "file://test"]]
-    
+
        [[:from "direct:test-route-1"]
         [:route-id "test-route-1"]
         [:on-exception Exception]
@@ -57,4 +57,3 @@ all the goodness of functional programming.
 ## License
 
 Copyright (c) 2012-2013 Manish Handa and released under an MIT license.
-
