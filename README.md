@@ -1,6 +1,6 @@
 # clj-camel [![Build Status](https://travis-ci.org/hmanish/clj-camel.svg?branch=master)](https://travis-ci.org/hmanish/clj-camel)
 
-clj-camel provides a thin wrapper over the Apache Camel Java DSL. The routes are wrtten as clojure vectors
+clj-camel provides a thin wrapper over the Apache Camel Java DSL. The routes are written as clojure vectors
 where the first element is the keyword corresponding to the camel dsl (converted to clojure convention,
 e.g onException will be represented by  :on-exception) and subsequent elements are the
 parameters to the dsl element. For paramterless dsl element, the keyword can be specified
